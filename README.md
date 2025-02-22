@@ -9,3 +9,8 @@ python test
 4. 장마감 보고서 : 특징주 위주로 장마감 요약
 5. 보고서 : 허유파파-요약정리 참고, 마인드맵
    
+# install
+# pip install requests beautifulsoup4 pandas PyQt5 openpyxl
+
+# main_window.py : 화면실행
+# 
