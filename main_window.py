@@ -76,7 +76,7 @@ class MainWindow(QMainWindow):
         # 버튼 생성
         buttons = [
             ("KRX주식정보", 'getKrxStockList.py'),
-            ("테마조회", 'getNaverThem.py'),
+            ("테마조회", 'getNaverTheme.py'),
             ("테마상세조회", 'getNaverThemDtl.py'),
             ("주식상세조회", 'getStockDtl.py'),
             ("엑셀데이터", 'getFileSum.py'),
