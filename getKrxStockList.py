@@ -6,29 +6,12 @@ import pandas as pd
 import datetime
 import time
 import os
+from file_manager import FileManager
 
 # 미리셋팅
 # pip install requests pandas
 
-def make_folder(today):
-    # 현재 디렉토리 기준으로 폴더 경로 설정
-    folder_path = os.path.join(os.getcwd(), today)
-
-    # 폴더가 없으면 생성
-    if not os.path.exists(folder_path):
-        os.makedirs(folder_path)
-        print(f"폴더 생성됨: {folder_path}")
-    else:
-        print(f"이미 존재하는 폴더: {folder_path}")
-
-    return folder_path
-
-def chk_file(filename):
-    if os.path.isfile(filename):
-        os.remove(filename)
-        print(f"{filename} 파일을 삭제했습니다.")
-    else:
-        print(f"{filename} 파일이 존재하지 않습니다.")
+file_manager = FileManager()
 
 def get_krx_stock_list():
     """KRX 주식시장의 전종목 시세를 가져오는 함수"""
@@ -40,7 +23,7 @@ def get_krx_stock_list():
     # 오늘 날짜 생성 (YYYYMMDD 형식)
     today = datetime.datetime.now().strftime("%Y%m%d")
     # 폴더 만들기
-    folder_path = make_folder(today)
+    folder_path = file_manager.make_folder(today)
     
     # otp 데이터 가져오기
     gen_otp_url = 'http://data.krx.co.kr/comm/fileDn/GenerateOTP/generate.cmd'
@@ -88,7 +71,7 @@ def get_krx_stock_list():
         # CSV 파일로 저장
         output_filename = f'krx_stock_list_{today}.csv'
         # 동일 파일 삭제
-        chk_file(folder_path+'/'+ output_filename)
+        file_manager.check_and_delete_file(folder_path+'/'+ output_filename)
 
         df.to_csv(folder_path+'/'+ output_filename, index=False, encoding='utf-8-sig')
         print(f"데이터가 {output_filename}로 저장되었습니다.")

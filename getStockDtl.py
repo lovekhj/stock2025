@@ -1,102 +1,72 @@
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
-import lxml
+import os
+import datetime
+import time
+from file_manager import FileManager
 
-## pip install lxml
+file_manager = FileManager()
 
-def get_stock_info(code):
-    url = f'https://finance.naver.com/item/main.naver?code={code}'  # URL 변경
+def get_market_cap_info(gubun, url):
+    # url = "https://finance.naver.com/sise/sise_market_sum.naver"
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36',
         'Referer': 'https://finance.naver.com',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8'
     }
+    gubunNm = "코스피"
+    if gubun == 1:
+        gubunNm = "코스닥"
 
     try:
         response = requests.get(url, headers=headers)
-        response.raise_for_status()  # HTTP 오류 체크
+        response.raise_for_status()
         response.encoding = 'euc-kr'
-        soup = BeautifulSoup(response.text, 'lxml')
+        soup = BeautifulSoup(response.text, 'html.parser')
 
-        print("soup ==>", soup)
+        stocks_data = []
+        rows = soup.select('table.type_2 tbody tr')
+        
+        for row in rows:
+            tds = row.select('td')
+            if len(tds) <= 1:  # N/A 행 건너뛰기
+                continue
+                
+            try:
+                # a 태그가 있는지 확인
+                name_link = tds[1].select_one('a')
+                if name_link:
+                    code = name_link['href'].split('code=')[1]
+                    name = name_link.text.strip()
+                    
+                    # 각 컬럼의 데이터 추출
+                    current_price = tds[2].text.strip().replace(chr(10),'').replace(chr(13),'')
+                    price_diff = tds[3].text.strip().replace(chr(10),'').replace(chr(13),'').replace('\t','').replace('상승','+').replace('하락','-').replace('보합','')
+                    change_ratio = tds[4].text.strip().replace(chr(10),'').replace(chr(13),'')
+                    volume = tds[9].text.strip().replace(chr(10),'').replace(chr(13),'')
+                    per = tds[10].text.strip().replace(chr(10),'').replace(chr(13),'')
+                    # 데이터 검증을 위한 출력
+                    # print(f"종목: {name}, 현재가: {current_price}, 전일비: {price_diff}, 등락률: {change_ratio}, 거래량: {volume}, PER: {per}")
+                    
+                    stocks_data.append({
+                        '종목코드': code,
+                        '종목명': name,
+                        '구분': gubunNm,
+                        '현재가': current_price,
+                        '전일비': price_diff,
+                        '등락률': change_ratio,
+                        '거래량': volume,
+                        'PER': per
+                    })
+            except Exception as e:
+                print(f"데이터 추출 중 오류 발생 - 종목: {name if 'name' in locals() else 'Unknown'}, 오류: {str(e)}")
+                continue
 
-        # 종목 기본 정보
-        stock_name_element = soup.select_one('div.wrap_company h2 a')
-        stock_name = stock_name_element.text.strip() if stock_name_element else 'N/A'
+        if not stocks_data:
+            raise ValueError("수집된 데이터가 없습니다.")
 
-        # 현재가 정보
-        current_price_element = soup.select_one('div.today span.blind')
-        current_price = current_price_element.text.strip() if current_price_element else 'N/A'
-        
-        # 전일대비 정보
-        price_diff_element = soup.select_one('div.today span.blind:nth-child(2)')
-        price_diff = price_diff_element.text.strip() if price_diff_element else 'N/A'
-        
-        # 전일가 계산
-        prev_price_element = soup.select_one("#chart_area > div.rate_info > table > tbody > tr:nth-child(1) > td.first > em")
-        print("prev_price==>", prev_price_element.text)
-        # try:
-        #     if current_price != 'N/A' and price_diff != 'N/A':
-        #         current_price_num = int(current_price.replace(',', ''))
-        #         price_diff_num = int(price_diff.replace(',', '').replace('+', '').replace('-', ''))
-        #         if '-' in price_diff:
-        #             prev_price = current_price_num + price_diff_num
-        #         else:
-        #             prev_price = current_price_num - price_diff_num
-        #         prev_price = format(prev_price, ',')
-        #     else:
-        #         prev_price = 'N/A'
-        # except ValueError:
-        #     prev_price = 'N/A'
-        
-        # 거래량, 거래대금 정보
-        volume_element = soup.select_one('span#_quant')
-        volume = volume_element.text.strip() if volume_element else 'N/A'
-        
-        trading_value_element = soup.select_one('span#_amount')
-        trading_value = trading_value_element.text.strip() if trading_value_element else 'N/A'
-        
-        # PER, 추정PER 정보
-        per_element = soup.select_one('#_per')
-        per = per_element.text.strip().split('\n')[0] if per_element else 'N/A'
-        
-        est_per_element = soup.select_one('table.per_table tbody tr td:nth-child(2)')
-        estimated_per = est_per_element.text.strip().split('\n')[0] if est_per_element else 'N/A'
-        
-        # 시가총액 정보
-        market_cap_element = soup.select_one('#_market_sum')
-        market_cap = market_cap_element.text.strip() if market_cap_element else 'N/A'
-        
-        # 투자의견, 목표주가 정보 (컨센서스)
-        consensus_element = soup.select_one('#tab_con1 > div:nth-child(4) > table > tbody > tr:nth-child(1) > td > span.f_up > em')
-        consensus = consensus_element.text.strip() if consensus_element else 'N/A'
-        
-        target_price_element = soup.select_one('#tab_con1 > div:nth-child(4) > table > tbody > tr:nth-child(1) > td > em')
-        print("target_price_element==>", target_price_element)
-        target_price = target_price_element.text.strip() if target_price_element else 'N/A'
-        
-        stock_data = {
-            '종목코드': code,
-            '종목명': stock_name,
-            '현재가': current_price,
-            '전일가': prev_price,
-            '전일대비': price_diff,
-            '거래량': volume,
-            '거래대금': trading_value,
-            'PER': per,
-            '추정PER': estimated_per,
-            '시가총액': market_cap.replace('\n','').replace('\t',''),
-            '투자의견': consensus,
-            '목표주가': target_price
-        }
-        
-        # 데이터 검증
-        print("\n수집된 데이터:")
-        for key, value in stock_data.items():
-            print(f"{key}: {value}")
-        
-        return pd.DataFrame([stock_data])
+        return stocks_data
 
     except requests.RequestException as e:
         print(f"네트워크 요청 중 오류 발생: {str(e)}")
@@ -105,13 +75,37 @@ def get_stock_info(code):
         print(f"데이터 처리 중 오류 발생: {str(e)}")
         return None
 
-# 사용 예시
 if __name__ == "__main__":
-    stock_code = "005930"  # 삼성전자
-    df = get_stock_info(stock_code)
-    if df is not None:
-        print("\n최종 DataFrame:")
-        print(df)
-        # CSV 파일로 저장
-        df.to_csv(f'stock_info_{stock_code}.csv', index=False, encoding='utf-8-sig')
-        print(f"\nCSV 파일 저장 완료: stock_info_{stock_code}.csv")
+
+    # 오늘 날짜 생성 (YYYYMMDD 형식)
+    today = datetime.datetime.now().strftime("%Y%m%d")
+    # 폴더 만들기
+    folder_path = file_manager.make_folder(today)
+
+    all_stocks_data  = []
+    # url = "https://finance.naver.com/sise/sise_market_sum.naver?sosok=0&page=4"
+    for idx1 in range(0,2):
+        for idx2 in range(1,50):
+        # for idx2 in range(1,2):
+            url = f'https://finance.naver.com/sise/sise_market_sum.naver?sosok={idx1}&page={idx2}'
+            print('url=>', url)
+
+            stocks_data = get_market_cap_info(idx1, url)
+            if stocks_data == None:
+                break
+
+            all_stocks_data.extend(stocks_data)
+            time.sleep(1)
+
+    # CSV 파일로 저장
+    output_filename = f'stock_dtl_list_{today}.csv'
+
+    # 동일 파일 삭제
+    file_manager.check_and_delete_file(folder_path+'/'+ output_filename)
+    
+    # DataFrame 생성 및 CSV 저장
+    df = pd.DataFrame(all_stocks_data)
+    df.to_csv(folder_path+'/'+ output_filename, index=False, encoding='utf-8-sig')
+    print(f"데이터가 {output_filename}로 저장되었습니다.")
+
+    
