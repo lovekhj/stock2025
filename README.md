@@ -14,3 +14,5 @@ python test
 
 # main_window.py : 화면실행
 # 
+
+# news crawling
