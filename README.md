@@ -10,9 +10,14 @@ python test
 5. 보고서 : 허유파파-요약정리 참고, 마인드맵
    
 # install
-# pip install requests beautifulsoup4 pandas PyQt5 openpyxl
+# pip3 install datetime time requests beautifulsoup4 pandas openpyxl
+# pip3 freeze : 설치된 패키지 확인
+# pip3 freeze > requirements.txt : requirements.txt에 설치된 패키지 설치
+# pip3 install -r requirements.txt : requirements.txt에 기록된 패키지 설치
 
-# main_window.py : 화면실행
-# 
+news 실행
+   python3 main_news.py
 
-# news crawling
+stock정보 실행
+   python3 main_stock.py
+
