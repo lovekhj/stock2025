@@ -21,3 +21,8 @@ news 실행
 stock정보 실행
    python3 main_stock.py
 
+
+python3 -m venv venv
+source venv/bin/activate
+
+deactivate
