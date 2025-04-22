@@ -39,6 +39,8 @@ import pandas as pd
 # last_page = soup.select("td.pgRR a")[0]["href"].split("=")[-1]
 # print(last_page)
 
+# 참고로 아래 코드에서 append를 사용할 경우 리스트 안에 리스트 형태로 모든 데이터가 들어갑니다. 각 컬럼에 들어갈 값의 리스트이기 때문에 
+# 각 리스트는 1차원 리스트가 되어야 하고, 이 때는 append 대신 extend를 사용해주면 됩니다.
 # extend는 append와 달리 리스트를 리스트에 넣더라도 내용만 넣어서 1차원 리스트로 만들어줍니다.
 
 dates, prices, diffs, rates, volumns, amounts = [],[],[],[], [],[]
