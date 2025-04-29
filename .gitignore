@@ -9,6 +9,7 @@
 keys.json
 *.csv
 *.xlsx
+*.pyc
 /venv/*
 /path/*
 
