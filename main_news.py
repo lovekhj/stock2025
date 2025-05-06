@@ -33,10 +33,12 @@ def call_news_main():
         total_news = total_news + news
 
     output_filename = f'today_news_{today}.csv'
+    output_excel_filename = f'today_news_{today}.xlsx'
     file_manager.check_and_delete_file(folder_path+'/'+output_filename)
 
     df = pd.DataFrame(total_news)
     df.to_csv(folder_path+'/'+output_filename, index=False, encoding='utf-8-sig')
+    df.to_excel(folder_path+'/'+output_excel_filename, index=False, columns=None)
     
     print("done")
 
@@ -70,5 +72,5 @@ def call_konlpy(fileNm):
 
 if __name__ == '__main__':
     csv_file = call_news_main()
-    # call_konlpy(csv_file)
+    call_konlpy(csv_file)
     # call_konlpy()
