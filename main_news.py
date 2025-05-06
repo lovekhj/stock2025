@@ -72,5 +72,5 @@ def call_konlpy(fileNm):
 
 if __name__ == '__main__':
     csv_file = call_news_main()
-    call_konlpy(csv_file)
+    # call_konlpy(csv_file)
     # call_konlpy()
