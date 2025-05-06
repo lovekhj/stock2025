@@ -17,6 +17,8 @@ import getNaverNewsList
 from file_manager import FileManager
 import datetime
 import pandas as pd
+from konlpy.tag import Okt
+from collections import Counter
 
 file_manager = FileManager()
 
@@ -35,8 +37,38 @@ def call_news_main():
 
     df = pd.DataFrame(total_news)
     df.to_csv(folder_path+'/'+output_filename, index=False, encoding='utf-8-sig')
+    
     print("done")
+
+    return folder_path+'/'+output_filename
+
+def call_konlpy(fileNm):
+# def call_konlpy():
+    # CSV 파일 읽기
+    # df = pd.read_csv("20250502/today_news_20250502.csv")
+    df = pd.read_csv(fileNm)
+
+    # 형태소 분석기
+    okt = Okt()
+
+    # 명사/동사 추출
+    nouns = []
+    verbs = []
+
+    for title in df['title']:
+        tokens = okt.pos(title)
+        nouns += [word for word, pos in tokens if pos == 'Noun']
+        verbs += [word for word, pos in tokens if pos == 'Verb']
+
+    # 빈도 수 계산
+    noun_freq = Counter(nouns).most_common(20)
+    verb_freq = Counter(verbs).most_common(20)
+
+    print("명사 상위 20개:", noun_freq)
+    print("동사 상위 20개:", verb_freq)
 
 
 if __name__ == '__main__':
-    call_news_main()
+    csv_file = call_news_main()
+    # call_konlpy(csv_file)
+    # call_konlpy()

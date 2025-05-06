@@ -14,6 +14,8 @@ python test
 # pip3 freeze : 설치된 패키지 확인
 # pip3 freeze > requirements.txt : requirements.txt에 설치된 패키지 설치
 # pip3 install -r requirements.txt : requirements.txt에 기록된 패키지 설치
+# pip3 install konlpy
+
 
 news 실행
    python3 main_news.py
