@@ -29,6 +29,7 @@ def call_news_main():
     folder_path = file_manager.make_folder(today)
     total_news = []
     for i in range(6):
+        # print(f"https://news.naver.com/section/10{i}")
         news = getNaverNewsList.naver_news(f"https://news.naver.com/section/10{i}")
         total_news = total_news + news
 

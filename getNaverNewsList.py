@@ -21,6 +21,7 @@ def request_url(url):
 
 def naver_news(url) -> list[Any]:
     soup = request_url(url)
+    chapter = soup.select_one("#ct_wrap > div.ct_scroll_wrapper > div.column0 > div > h2 > a")
     articles = soup.select("li > div > div > div.sa_text")
 
     news = []
@@ -28,7 +29,7 @@ def naver_news(url) -> list[Any]:
         url = tag.select_one("a")["href"]
         title = tag.select_one("strong").text
         press = tag.select_one("div.sa_text_info_left > div").text
-        news.append({'press': press, 'title': title, 'url': url})
+        news.append({'chater':chapter.text, 'press': press, 'title': title, 'url': url})
     return news
 
 if __name__ == '__main__':

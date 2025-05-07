@@ -70,12 +70,16 @@ def get_krx_stock_list():
         print("df==>", df)
         # CSV 파일로 저장
         output_filename = f'krx_stock_list_{today}.csv'
+        output_excel_filename = f'krx_stock_list_{today}.xlsx'
         # 동일 파일 삭제
         file_manager.check_and_delete_file(folder_path+'/'+ output_filename)
 
         df.to_csv(folder_path+'/'+ output_filename, index=False, encoding='utf-8-sig')
+        df.to_excel(folder_path+'/'+ output_excel_filename, index=False)
         print(f"데이터가 {output_filename}로 저장되었습니다.")
         
+        return folder_path+'/'+ output_excel_filename
+    
     except requests.exceptions.RequestException as e:
         print(f"데이터 요청 중 오류가 발생했습니다: {e}")
         return None
@@ -83,5 +87,37 @@ def get_krx_stock_list():
         print(f"처리 중 오류가 발생했습니다: {e}")
         return None
 
+def get_krx_100(krxExcel):
+# def get_krx_100():
+    file_manager = FileManager()
+
+    # 오늘 날짜 생성 (YYYYMMDD 형식)
+    today = datetime.datetime.now().strftime("%Y%m%d")
+    # 폴더 만들기
+    folder_path = file_manager.make_folder(today)
+    
+    df = pd.read_excel("./20250507/krx_stock_list_20250507.xlsx")
+    # df = pd.read_excel(krxExcel)
+    print(df.columns)
+    volumn_col = '거래대금'
+    change_col = '등락률'
+    # 거래량 상위 100
+    top_volume = df.sort_values(by=volumn_col, ascending=False).head(100)
+    # 등락률
+    top_change = df.sort_values(by=change_col, ascending=False).head(100)
+
+    # 두개 만족하는 교집합
+    top_inter = pd.merge(top_volume, top_change, how='inner', on='종목명') # 종목명 기준 병합
+    # print(top_inter.head(100))
+    # print(top_inter[['종목명', volumn_col, change_col]])
+
+    output_excel_filename = f'krx_top_100_{today}.xlsx'
+    # 동일 파일 삭제
+    file_manager.check_and_delete_file(folder_path+'/'+ output_excel_filename)
+    top_inter = top_inter.rename(columns={'종목코드_x': '종목코드'})
+    col_to_save = ['종목코드', '종목명']
+    top_inter[col_to_save].to_excel(folder_path+'/'+ output_excel_filename, index=False)
 if __name__ == "__main__":
-    get_krx_stock_list()
+    krxExcel = get_krx_stock_list()
+    get_krx_100(krxExcel)
+    # get_krx_100()
